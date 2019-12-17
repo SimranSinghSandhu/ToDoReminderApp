@@ -10,6 +10,8 @@ import UIKit
 
 class ViewController: UIViewController {
 
+    let cellId = "cellId"
+    
     let tableView: UITableView = {
         let tblView = UITableView()
         tblView.backgroundColor = UIColor.white
@@ -28,8 +30,11 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
     
     private func settingTableView() {
         view.addSubview(tableView)
+        
         tableView.delegate = self
         tableView.dataSource = self
+        
+        tableView.register(CustomCell.self, forCellReuseIdentifier: cellId)
         
         tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 0).isActive = true
         tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: 0).isActive = true
@@ -42,7 +47,8 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        <#code#>
+        let cell = tableView.dequeueReusableCell(withIdentifier: cellId, for: indexPath) as! CustomCell
+        return cell
     }
 
 }
