@@ -11,6 +11,7 @@ import UIKit
 class ViewController: UIViewController {
 
     let cellId = "cellId"
+    var itemArray = [Item]()
     
     let tableView: UITableView = {
         let tblView = UITableView()
@@ -23,6 +24,27 @@ class ViewController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = UIColor.white
         settingTableView()
+        settingNavigationItems()
+    }
+}
+
+extension ViewController {
+    private func settingNavigationItems() {
+        let addBtn = UIBarButtonItem(title: "Add", style: .done, target: self, action: #selector(addBtnHandle))
+        navigationItem.rightBarButtonItem = addBtn
+    }
+    
+    @objc func addBtnHandle() {
+        createNewItem(indexPath: [0, itemArray.count])
+    }
+    
+    private func createNewItem(indexPath: IndexPath) {
+        let newItem = Item()
+//        newItem.title = 
+        itemArray.insert(newItem, at: indexPath.row)
+        tableView.beginUpdates()
+        tableView.insertRows(at: [indexPath], with: .automatic)
+        tableView.endUpdates()
     }
 }
 
@@ -43,11 +65,12 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 0
+        return itemArray.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: cellId, for: indexPath) as! CustomCell
+        cell.cellTextField.text = itemArray[indexPath.row].title
         return cell
     }
 

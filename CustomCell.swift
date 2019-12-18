@@ -13,6 +13,7 @@ class CustomCell: UITableViewCell {
     let cellTextField: UITextField = {
         let textField = UITextField()
         textField.placeholder = "Enter New Item..."
+        textField.translatesAutoresizingMaskIntoConstraints = false
         return textField
     }()
     
