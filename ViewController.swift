@@ -25,9 +25,11 @@ class ViewController: UIViewController {
         view.backgroundColor = UIColor.white
         settingTableView()
         settingNavigationItems()
+        
     }
 }
 
+// Setting Up Navigation Items
 extension ViewController {
     private func settingNavigationItems() {
         let addBtn = UIBarButtonItem(title: "Add", style: .done, target: self, action: #selector(addBtnHandle))
@@ -40,11 +42,28 @@ extension ViewController {
     
     private func createNewItem(indexPath: IndexPath) {
         let newItem = Item()
-//        newItem.title = 
         itemArray.insert(newItem, at: indexPath.row)
         tableView.beginUpdates()
         tableView.insertRows(at: [indexPath], with: .automatic)
         tableView.endUpdates()
+    }
+}
+
+// Setting up TextField Delegate Methods.
+extension ViewController: UITextFieldDelegate {
+    
+    private func getIndexPathOfSelectedTextField(textField: UITextField, rowIncrement: Int) -> IndexPath {
+        let textFieldPoint = textField.convert(textField.bounds.origin, to: tableView)
+        var indexPath = tableView.indexPathForRow(at: textFieldPoint)
+        indexPath!.row += rowIncrement
+        return indexPath!
+    }
+    
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        if textField.text != "" {
+            createNewItem(indexPath: getIndexPathOfSelectedTextField(textField: textField, rowIncrement: 1))
+        }
+        return true
     }
 }
 
@@ -71,6 +90,7 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: cellId, for: indexPath) as! CustomCell
         cell.cellTextField.text = itemArray[indexPath.row].title
+        cell.cellTextField.delegate = self
         return cell
     }
 
