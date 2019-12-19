@@ -12,6 +12,7 @@ class ViewController: UIViewController {
 
     let cellId = "cellId"
     var itemArray = [Item]()
+    var currentIndexPath: IndexPath?
     
     let tableView: UITableView = {
         let tblView = UITableView()
@@ -46,6 +47,8 @@ extension ViewController {
         tableView.beginUpdates()
         tableView.insertRows(at: [indexPath], with: .automatic)
         tableView.endUpdates()
+        
+        currentIndexPath = indexPath
     }
 }
 
@@ -93,5 +96,12 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
         cell.cellTextField.delegate = self
         return cell
     }
-
+    
+    func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        if let cell = cell as? CustomCell {
+            if currentIndexPath?.row == indexPath.row {
+                cell.cellTextField.becomeFirstResponder()
+            }
+        }
+    }
 }
