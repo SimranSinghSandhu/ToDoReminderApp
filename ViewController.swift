@@ -13,6 +13,7 @@ class ViewController: UIViewController {
     let cellId = "cellId"
     var itemArray = [Item]()
     var currentIndexPath: IndexPath?
+    var isAdding: Bool = false
     
     var addBtn: UIBarButtonItem = {
         let barBtn = UIBarButtonItem()
@@ -61,21 +62,24 @@ extension ViewController {
     
     @objc func addBtnHandle() {
         swapNavigationBtn(with: doneBtn)
-        createNewItem(indexPath: [0, itemArray.count])
+        createNewItem(indexPath: [0, itemArray.count], rowIncremet: 0)
     }
     
     private func swapNavigationBtn(with barBtn: UIBarButtonItem) {
         navigationItem.rightBarButtonItem = barBtn
     }
     
-    private func createNewItem(indexPath: IndexPath) {
+    private func createNewItem(indexPath: IndexPath, rowIncremet: Int) {
         
-        currentIndexPath = indexPath
+        let newIndexPath: IndexPath = [indexPath.section, indexPath.row + rowIncremet]
+        
+        currentIndexPath = newIndexPath
         
         let newItem = Item()
-        itemArray.insert(newItem, at: indexPath.row)
+        newItem.title = ""
+        itemArray.insert(newItem, at: newIndexPath.row)
         tableView.beginUpdates()
-        tableView.insertRows(at: [indexPath], with: .automatic)
+        tableView.insertRows(at: [newIndexPath], with: .automatic)
         tableView.endUpdates()
     }
 }
@@ -83,10 +87,9 @@ extension ViewController {
 // Setting up TextField Delegate Methods.
 extension ViewController: UITextFieldDelegate {
     
-    private func getIndexPathOfSelectedTextField(textField: UITextField, rowIncrement: Int) -> IndexPath {
+    private func getIndexPathOfSelectedTextField(textField: UITextField) -> IndexPath {
         let textFieldPoint = textField.convert(textField.bounds.origin, to: tableView)
-        var indexPath = tableView.indexPathForRow(at: textFieldPoint)
-        indexPath!.row += rowIncrement
+        let indexPath = tableView.indexPathForRow(at: textFieldPoint)
         return indexPath!
     }
     
@@ -94,14 +97,50 @@ extension ViewController: UITextFieldDelegate {
         swapNavigationBtn(with: doneBtn)
     }
     
+    // When Current TextField has End Editing.
+    func textFieldDidEndEditing(_ textField: UITextField) {
+        populatingCurrentItemWithData(textField: textField)     // Updating Data of Current Item
+        removeEmptyTextFields()                                 // Removing Empty Items from TableView and Array
+        if isAdding {                                           // Checking if Return Key is Pressed
+            // if Yes, Add a New Item
+            let indexPath = getIndexPathOfSelectedTextField(textField: textField)
+            createNewItem(indexPath: indexPath, rowIncremet: 1)
+            isAdding = false
+        }
+    }
+    
+    // When Return Key is Pressed on Keyboard
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        if textField.text != "" {
-            createNewItem(indexPath: getIndexPathOfSelectedTextField(textField: textField, rowIncrement: 1))
+        if textField.text != "" {                         // If Current TextField Text is not Empty
+            isAdding = true
+            textFieldDidEndEditing(textField)               // Calling TextFieldDidEndEditing Function
         } else {
             tableView.endEditing(true)
             swapNavigationBtn(with: addBtn)
         }
+        
         return true
+    }
+    
+    // Updating Current Item Data in Array
+    private func populatingCurrentItemWithData(textField: UITextField) {
+        let indexPath = getIndexPathOfSelectedTextField(textField: textField)
+        itemArray[indexPath.row].title = textField.text
+    }
+    
+    // Remove Empty Items from Array
+    private func removeEmptyTextFields() {
+        var indexDecreaser = 0
+        for index in 0..<itemArray.count {
+            let currentIndex = index - indexDecreaser
+            if itemArray[currentIndex].title == "" {
+                itemArray.remove(at: currentIndex)
+                tableView.deleteRows(at: [[0, currentIndex]], with: .automatic)
+                indexDecreaser += 1
+                print("Deleteing Items")
+            }
+        }
+        indexDecreaser = 0
     }
 }
 
