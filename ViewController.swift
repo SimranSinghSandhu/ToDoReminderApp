@@ -14,6 +14,15 @@ class ViewController: UIViewController {
     var itemArray = [Item]()
     var currentIndexPath: IndexPath?
     
+    var addBtn: UIBarButtonItem = {
+        let barBtn = UIBarButtonItem()
+        return barBtn
+    }()
+    var doneBtn: UIBarButtonItem = {
+        let barBtn = UIBarButtonItem()
+        return barBtn
+    }()
+    
     let tableView: UITableView = {
         let tblView = UITableView()
         tblView.backgroundColor = UIColor.white
@@ -26,29 +35,48 @@ class ViewController: UIViewController {
         view.backgroundColor = UIColor.white
         settingTableView()
         settingNavigationItems()
-        
     }
 }
 
 // Setting Up Navigation Items
 extension ViewController {
     private func settingNavigationItems() {
-        let addBtn = UIBarButtonItem(title: "Add", style: .done, target: self, action: #selector(addBtnHandle))
+        addBtn.title = "Add"
+        addBtn.action = #selector(addBtnHandle)
+        addBtn.target = self
+        addBtn.style = .done
+        
+        doneBtn.title = "Done"
+        doneBtn.action = #selector(doneBtnHandle)
+        doneBtn.target = self
+        doneBtn.style = .done
+        
         navigationItem.rightBarButtonItem = addBtn
     }
     
+    @objc func doneBtnHandle() {
+        tableView.endEditing(true)
+        swapNavigationBtn(with: addBtn)
+    }
+    
     @objc func addBtnHandle() {
+        swapNavigationBtn(with: doneBtn)
         createNewItem(indexPath: [0, itemArray.count])
     }
     
+    private func swapNavigationBtn(with barBtn: UIBarButtonItem) {
+        navigationItem.rightBarButtonItem = barBtn
+    }
+    
     private func createNewItem(indexPath: IndexPath) {
+        
+        currentIndexPath = indexPath
+        
         let newItem = Item()
         itemArray.insert(newItem, at: indexPath.row)
         tableView.beginUpdates()
         tableView.insertRows(at: [indexPath], with: .automatic)
         tableView.endUpdates()
-        
-        currentIndexPath = indexPath
     }
 }
 
@@ -62,9 +90,16 @@ extension ViewController: UITextFieldDelegate {
         return indexPath!
     }
     
+    func textFieldDidBeginEditing(_ textField: UITextField) {
+        swapNavigationBtn(with: doneBtn)
+    }
+    
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         if textField.text != "" {
             createNewItem(indexPath: getIndexPathOfSelectedTextField(textField: textField, rowIncrement: 1))
+        } else {
+            tableView.endEditing(true)
+            swapNavigationBtn(with: addBtn)
         }
         return true
     }
