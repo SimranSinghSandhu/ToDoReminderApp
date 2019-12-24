@@ -20,6 +20,7 @@ class CustomCell: UITableViewCell {
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         settingTextField()
+        self.layoutIfNeeded()
     }
     
     required init?(coder: NSCoder) {
