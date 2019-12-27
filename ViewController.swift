@@ -14,6 +14,7 @@ class ViewController: UIViewController {
     var itemArray = [Item]()
     var currentIndexPath: IndexPath?
     var isAdding = false
+    var alreadyPopulating: Bool = false
     
     var keyBoardSize: CGRect?
     
@@ -107,6 +108,9 @@ extension ViewController: UITextFieldDelegate {
     
     // When TextField is Selected
     func textFieldDidBeginEditing(_ textField: UITextField) {
+        
+        alreadyPopulating = false
+        
         let indexPath = getIndexPathOfSelectedTextField(textField: textField)
         if let keyBoardSize = keyBoardSize {                                        // UnWrapping KeyBoard Height
             self.tableView.contentInset.bottom = keyBoardSize.height
@@ -118,8 +122,10 @@ extension ViewController: UITextFieldDelegate {
     
     // When Current TextField has End Editing.
     func textFieldDidEndEditing(_ textField: UITextField) {
-        populatingCurrentItemWithData(textField: textField)     // Updating Data of Current Item
-        removeEmptyTextFields(textField: textField)             // Removing Empty item
+        if !alreadyPopulating {
+            populatingCurrentItemWithData(textField: textField)     // Updating Data of Current Item
+            removeEmptyTextFields(textField: textField)             // Removing Empty item76
+        }
     }
     
     // When Return Key is Pressed on Keyboard
@@ -127,6 +133,8 @@ extension ViewController: UITextFieldDelegate {
         
         if textField.text != "" {                                    // If Current TextField Text is not Empty
             populatingCurrentItemWithData(textField: textField)         // Updating Data of Current Item
+            
+            alreadyPopulating = true
             
             let indexPath = getIndexPathOfSelectedTextField(textField: textField)
             createNewItem(indexPath: indexPath, rowIncremet: 1)         // Create New Item
@@ -160,7 +168,7 @@ extension ViewController: UITextFieldDelegate {
     }
 }
 
-extension ViewController: UITableViewDelegate, UITableViewDataSource, UIScrollViewDelegate {
+extension ViewController: UITableViewDelegate, UITableViewDataSource {
     
     // Setting tableView Constraints and Deletegates
     private func settingTableView() {
@@ -197,6 +205,30 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource, UIScrollVi
             }
         }
     }
+}
+
+// Completing and Deleting Items using leading and Trailing Gestures
+extension ViewController {
+    
+    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        let deleteAction = UIContextualAction(style: .destructive, title: "Delete") { (action, view, Completion) in
+            self.itemArray.remove(at: indexPath.row)
+            self.tableView.deleteRows(at: [indexPath], with: .automatic)
+            Completion(true)
+        }
+        return UISwipeActionsConfiguration(actions: [deleteAction])
+    }
+    
+    func tableView(_ tableView: UITableView, leadingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        let doneAction = UIContextualAction(style: .normal, title: "Done") { (action, view, completion) in
+            
+            completion(true)
+        }
+        doneAction.backgroundColor = UIColor.systemGreen
+        
+        return UISwipeActionsConfiguration(actions: [doneAction])
+    }
+    
 }
 
 extension ViewController {
