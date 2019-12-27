@@ -177,6 +177,10 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
         tableView.delegate = self
         tableView.dataSource = self
         
+        tableView.dragDelegate = self
+        tableView.dropDelegate = self
+        tableView.dragInteractionEnabled = true
+        
         tableView.register(CustomCell.self, forCellReuseIdentifier: cellId)
         
         tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 0).isActive = true
@@ -228,6 +232,37 @@ extension ViewController {
         
         return UISwipeActionsConfiguration(actions: [doneAction])
     }
+    
+}
+
+// Sorting Cells
+extension ViewController: UITableViewDragDelegate, UITableViewDropDelegate {
+    
+    func tableView(_ tableView: UITableView, moveRowAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
+        let item = itemArray[sourceIndexPath.row]
+        itemArray.remove(at: sourceIndexPath.row)
+        itemArray.insert(item, at: destinationIndexPath.row)
+    }
+    
+    func tableView(_ tableView: UITableView, itemsForBeginning session: UIDragSession, at indexPath: IndexPath) -> [UIDragItem] {
+        return [UIDragItem(itemProvider: NSItemProvider())]
+    }
+
+    func tableView(_ tableView: UITableView, performDropWith coordinator: UITableViewDropCoordinator) {
+        
+    }
+    
+    func tableView(_ tableView: UITableView, dropSessionDidUpdate session: UIDropSession, withDestinationIndexPath destinationIndexPath: IndexPath?) -> UITableViewDropProposal {
+        if session.localDragSession != nil {
+            
+            return UITableViewDropProposal(operation: .move, intent: .insertAtDestinationIndexPath)
+            
+        }
+        
+        return UITableViewDropProposal(operation: .cancel)
+        
+    }
+    
     
 }
 
