@@ -15,6 +15,7 @@ class ViewController: UIViewController {
     var currentIndexPath: IndexPath?
     var isAdding = false
     var alreadyPopulating: Bool = false
+    var rowDecrement: Int = 0
     
     var keyBoardSize: CGRect?
     
@@ -40,6 +41,7 @@ class ViewController: UIViewController {
         settingTableView()
         settingNavigationItems()
         settingKeyBoard()
+        
     }
 }
 
@@ -65,7 +67,8 @@ extension ViewController {
     
     @objc func addBtnHandle() {
         swapNavigationBtn(with: doneBtn)
-        createNewItem(indexPath: [0, itemArray.count], rowIncremet: 0)              // Create New Item
+        createNewItem(indexPath: [0, itemArray.count], rowIncremet: -rowDecrement)              // Create New Item
+        
         tableView.scrollToRow(at: [0, currentIndexPath!.row], at: .top, animated: true)     // Scroll TableView to Created Item (Cell)
     }
     
@@ -86,7 +89,6 @@ extension ViewController {
         tableView.beginUpdates()
         tableView.insertRows(at: [newIndexPath], with: .automatic)          // Insert Item in TableView
         tableView.endUpdates()
-        
     }
     
     private func endEditing() {                     // When Return key or Done Button is Pressed.
@@ -116,7 +118,6 @@ extension ViewController: UITextFieldDelegate {
             self.tableView.contentInset.bottom = keyBoardSize.height
             tableView.scrollToRow(at: indexPath, at: .middle, animated: true)       // Scrolling TextField When Selected
         }
-        
         swapNavigationBtn(with: doneBtn)
     }
     
@@ -142,7 +143,6 @@ extension ViewController: UITextFieldDelegate {
             self.tableView.contentInset.bottom = keyBoardSize!.height           // Modify TableView ContentInset according to Keyboard Height
             tableView.scrollToRow(at: currentIndexPath!, at: .middle, animated: true)     // Scroll to Current Cell
 
-
         } else {
             endEditing()       // End Editing when Return Key is Pressed and TextField Text is Empty
         }
@@ -166,6 +166,13 @@ extension ViewController: UITextFieldDelegate {
             tableView.endUpdates()
         }
     }
+    
+    private func doneItem(indexPath: IndexPath) -> NSMutableAttributedString {
+        let item = itemArray[indexPath.row].title
+        let cutStringAttribute = NSMutableAttributedString.init(string: item!)
+        cutStringAttribute.addAttribute(.foregroundColor, value: UIColor.red, range: NSRange.init(location: 0, length: item!.count))
+        return cutStringAttribute
+    }
 }
 
 extension ViewController: UITableViewDelegate, UITableViewDataSource {
@@ -188,18 +195,26 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
         tableView.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: 0).isActive = true
         tableView.heightAnchor.constraint(equalToConstant: view.frame.height).isActive = true
     }
-    
+
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return itemArray.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: cellId, for: indexPath) as! CustomCell
-        cell.cellTextField.text = itemArray[indexPath.row].title
+
+        let item = itemArray[indexPath.row]
+        
+        cell.cellTextField.text = item.title
         cell.cellTextField.delegate = self
         
-        return cell
+        cell.backgroundColor = UIColor.white
         
+        if item.done {
+            cell.cellTextField.attributedText = doneItem(indexPath: indexPath)
+            cell.backgroundColor = UIColor.systemPurple
+        }
+        return cell
     }
     
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
@@ -216,8 +231,14 @@ extension ViewController {
     
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         let deleteAction = UIContextualAction(style: .destructive, title: "Delete") { (action, view, Completion) in
+            
+            if self.itemArray[indexPath.row].done {
+                self.rowDecrement -= 1
+            }
+            
             self.itemArray.remove(at: indexPath.row)
             self.tableView.deleteRows(at: [indexPath], with: .automatic)
+            
             Completion(true)
         }
         return UISwipeActionsConfiguration(actions: [deleteAction])
@@ -226,6 +247,23 @@ extension ViewController {
     func tableView(_ tableView: UITableView, leadingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         let doneAction = UIContextualAction(style: .normal, title: "Done") { (action, view, completion) in
             
+            let item = self.itemArray[indexPath.row]
+            item.done = true
+            
+            // Deleting Item
+            self.itemArray.remove(at: indexPath.row)
+            self.tableView.deleteRows(at: [indexPath], with: .automatic)
+            
+            let newIndexPath : IndexPath = [0, self.itemArray.count]
+            
+            // Inserting Item at end of Array
+            self.itemArray.insert(item, at: newIndexPath.row)
+            tableView.beginUpdates()
+            tableView.insertRows(at: [newIndexPath], with: .automatic)
+            tableView.endUpdates()
+            
+            self.rowDecrement += 1
+
             completion(true)
         }
         doneAction.backgroundColor = UIColor.systemGreen

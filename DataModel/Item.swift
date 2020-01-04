@@ -11,5 +11,5 @@ import UIKit
 class Item: NSObject {
     
     var title: String?
-    var done: Bool?
+    var done: Bool = false
 }
