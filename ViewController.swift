@@ -208,12 +208,13 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
         cell.cellTextField.text = item.title
         cell.cellTextField.delegate = self
         
-        cell.backgroundColor = UIColor.white
-        
         if item.done {
             cell.cellTextField.attributedText = doneItem(indexPath: indexPath)
-            cell.backgroundColor = UIColor.systemPurple
+            cell.backgroundColor = UIColor.green
+        } else {
+            cell.backgroundColor = UIColor.white
         }
+        
         return cell
     }
     
@@ -244,33 +245,67 @@ extension ViewController {
         return UISwipeActionsConfiguration(actions: [deleteAction])
     }
     
+    private func modifyItemPosition(indexPath: IndexPath, completed: Bool) {
+        
+        let item = self.itemArray[indexPath.row]
+        
+        item.done = completed
+        
+        // Deleting Item
+        self.itemArray.remove(at: indexPath.row)
+        self.tableView.deleteRows(at: [indexPath], with: .automatic)
+        
+        var newIndexPath : IndexPath?
+        
+        if item.done {
+            newIndexPath = [0, self.itemArray.count]
+        } else {
+            let index = itemArray.count - rowDecrement
+            if item.originalIndex!.row < index {
+                newIndexPath = item.originalIndex
+            } else {
+                newIndexPath = [0, self.itemArray.count - rowDecrement]
+            }
+        }
+        // Inserting Item at end of Array
+        self.itemArray.insert(item, at: newIndexPath!.row)
+        tableView.beginUpdates()
+        tableView.insertRows(at: [newIndexPath!], with: .automatic)
+        tableView.endUpdates()
+        
+    }
+    
     func tableView(_ tableView: UITableView, leadingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        
         let doneAction = UIContextualAction(style: .normal, title: "Done") { (action, view, completion) in
             
-            let item = self.itemArray[indexPath.row]
-            item.done = true
+            self.itemArray[indexPath.row].originalIndex = indexPath
             
-            // Deleting Item
-            self.itemArray.remove(at: indexPath.row)
-            self.tableView.deleteRows(at: [indexPath], with: .automatic)
-            
-            let newIndexPath : IndexPath = [0, self.itemArray.count]
-            
-            // Inserting Item at end of Array
-            self.itemArray.insert(item, at: newIndexPath.row)
-            tableView.beginUpdates()
-            tableView.insertRows(at: [newIndexPath], with: .automatic)
-            tableView.endUpdates()
+            self.modifyItemPosition(indexPath: indexPath, completed: true)
             
             self.rowDecrement += 1
 
             completion(true)
         }
-        doneAction.backgroundColor = UIColor.systemGreen
         
-        return UISwipeActionsConfiguration(actions: [doneAction])
+        let unDoneAction = UIContextualAction(style: .normal, title: "UnDone") { (action, view, completion) in
+            
+            self.rowDecrement -= 1
+            
+            self.modifyItemPosition(indexPath: indexPath, completed: false)
+            
+            completion(true)
+        }
+        
+        doneAction.backgroundColor = UIColor.systemGreen
+        unDoneAction.backgroundColor = UIColor.systemBlue
+        
+        if itemArray[indexPath.row].done {
+            return UISwipeActionsConfiguration(actions: [unDoneAction])
+        } else {
+            return UISwipeActionsConfiguration(actions: [doneAction])
+        }
     }
-    
 }
 
 // Sorting Cells
