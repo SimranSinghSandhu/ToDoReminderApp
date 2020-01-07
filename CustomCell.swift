@@ -8,16 +8,20 @@
 
 import UIKit
 
+protocol infoButtonDelegate {
+    func didPressInfoButton(textField: UITextField)
+}
+
 class CustomCell: UITableViewCell {
+    
+    var btnDelegate: infoButtonDelegate?
     
     let infoButton: UIButton = {
         let spacing: CGFloat = 12
         
         let btn = UIButton()
-//        btn.frame = CGRect(x: 0, y: 0, width: 10, height: 10)
         btn.setImage(UIImage(named: "info_Btn.png"), for: .normal)
-        
-//        btn.backgroundColor = UIColor.gray
+
         btn.imageView?.contentMode = .scaleToFill
         
         btn.contentHorizontalAlignment = .fill
@@ -26,18 +30,12 @@ class CustomCell: UITableViewCell {
         return btn
     }()
     
-    let doneView: UIView = {
-        let view = UIView()
-        view.backgroundColor = UIColor.green
-        return view
-    }()
-    
     let cellTextField: UITextField = {
         let textField = UITextField()
         textField.placeholder = "Enter New Item..."
         textField.textColor = UIColor.black
+        textField.adjustsFontSizeToFitWidth = true
         textField.rightViewMode = .whileEditing
-//        textField.leftViewMode = .
         textField.translatesAutoresizingMaskIntoConstraints = false
         return textField
     }()
@@ -46,8 +44,10 @@ class CustomCell: UITableViewCell {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         
         self.addSubview(cellTextField)
-        cellTextField.rightView = infoButton
         
+        infoButton.addTarget(self, action: #selector(infoButtonHandle), for: .touchUpInside)
+        
+        cellTextField.rightView = infoButton
         settingConstraints()
     }
     
@@ -55,11 +55,16 @@ class CustomCell: UITableViewCell {
         super.init(coder: coder)
     }
     
+    
     private func settingConstraints() {
         
-        cellTextField.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 5).isActive = true
-        cellTextField.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -5).isActive = true
-        cellTextField.centerYAnchor.constraint(equalTo: centerYAnchor, constant: 0).isActive = true
-        cellTextField.heightAnchor.constraint(equalToConstant: frame.height).isActive = true
+        cellTextField.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 5).isActive = true
+        cellTextField.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -5).isActive = true
+        cellTextField.centerYAnchor.constraint(equalTo: self.centerYAnchor, constant: 0).isActive = true
+        cellTextField.heightAnchor.constraint(equalToConstant: self.frame.height).isActive = true
+    }
+    
+    @objc func infoButtonHandle() {
+        btnDelegate?.didPressInfoButton(textField: cellTextField)
     }
 }

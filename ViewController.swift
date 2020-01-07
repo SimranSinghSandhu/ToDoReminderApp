@@ -40,6 +40,7 @@ class ViewController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = UIColor.white
         settingTableView()
+        
         settingNavigationItems()
         settingKeyBoard()
         
@@ -195,6 +196,7 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
         tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: 0).isActive = true
         tableView.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: 0).isActive = true
         tableView.heightAnchor.constraint(equalToConstant: view.frame.height).isActive = true
+        
     }
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -208,6 +210,7 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
         
         cell.cellTextField.text = item.title
         cell.cellTextField.delegate = self
+        cell.btnDelegate = self
         
         if item.done {
             cell.cellTextField.attributedText = doneItem(indexPath: indexPath)
@@ -372,5 +375,18 @@ extension ViewController {
     
     @objc func keyboardWillHide(notification: Notification) {
         tableView.contentInset = .zero              // Reset TableView Content Inset when Keyboard will Hide.
+    }
+}
+
+extension ViewController: infoButtonDelegate {
+    
+    func didPressInfoButton(textField: UITextField) {
+        let btnPosition = textField.convert(textField.bounds.origin, to: tableView)
+        let indexPath = tableView.indexPathForRow(at: btnPosition)
+        print("IndexPath =", indexPath!.row)
+    }
+    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return UITableView.automaticDimension
     }
 }
