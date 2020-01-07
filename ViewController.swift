@@ -16,6 +16,7 @@ class ViewController: UIViewController {
     var isAdding = false
     var alreadyPopulating: Bool = false
     var rowDecrement: Int = 0
+    var dragDropIndexPath: IndexPath?
     
     var keyBoardSize: CGRect?
     
@@ -261,10 +262,10 @@ extension ViewController {
             newIndexPath = [0, self.itemArray.count]
         } else {
             let index = itemArray.count - rowDecrement
-            if item.originalIndex!.row < index {
+            if item.originalIndex!.row <= index {
                 newIndexPath = item.originalIndex
             } else {
-                newIndexPath = [0, self.itemArray.count - rowDecrement]
+                newIndexPath = [indexPath.section, self.itemArray.count - rowDecrement]
             }
         }
         // Inserting Item at end of Array
@@ -290,9 +291,8 @@ extension ViewController {
         
         let unDoneAction = UIContextualAction(style: .normal, title: "UnDone") { (action, view, completion) in
             
-            self.rowDecrement -= 1
-            
             self.modifyItemPosition(indexPath: indexPath, completed: false)
+            self.rowDecrement -= 1
             
             completion(true)
         }
@@ -318,6 +318,7 @@ extension ViewController: UITableViewDragDelegate, UITableViewDropDelegate {
     }
     
     func tableView(_ tableView: UITableView, itemsForBeginning session: UIDragSession, at indexPath: IndexPath) -> [UIDragItem] {
+        dragDropIndexPath = indexPath
         return [UIDragItem(itemProvider: NSItemProvider())]
     }
 
@@ -326,10 +327,21 @@ extension ViewController: UITableViewDragDelegate, UITableViewDropDelegate {
     }
     
     func tableView(_ tableView: UITableView, dropSessionDidUpdate session: UIDropSession, withDestinationIndexPath destinationIndexPath: IndexPath?) -> UITableViewDropProposal {
+        
+        let notCompletedItems = self.itemArray.count - rowDecrement
+        
         if session.localDragSession != nil {
-            
-            return UITableViewDropProposal(operation: .move, intent: .insertAtDestinationIndexPath)
-            
+            if destinationIndexPath != nil {
+                if dragDropIndexPath!.row < notCompletedItems && destinationIndexPath!.row < notCompletedItems{
+                    return UITableViewDropProposal(operation: .move, intent: .insertAtDestinationIndexPath)
+                }
+                else if dragDropIndexPath!.row >= notCompletedItems && destinationIndexPath!.row >= notCompletedItems {
+                    return UITableViewDropProposal(operation: .move, intent: .insertAtDestinationIndexPath)
+                }
+                else {
+                    return UITableViewDropProposal(operation: .cancel)
+                }
+            }
         }
         
         return UITableViewDropProposal(operation: .cancel)
