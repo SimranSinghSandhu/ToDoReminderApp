@@ -369,7 +369,6 @@ extension ViewController {
     @objc func keyboardWillShow(notification: Notification) {
         if let keyboardFrame = (notification.userInfo?[UIResponder.keyboardFrameBeginUserInfoKey] as? NSValue)?.cgRectValue {
             keyBoardSize = keyboardFrame            // Get the Height of Keyboard
-
         }
     }
     
@@ -378,15 +377,32 @@ extension ViewController {
     }
 }
 
-extension ViewController: infoButtonDelegate {
+extension ViewController: infoButtonDelegate, canChangeInfoDelegate {
     
     func didPressInfoButton(textField: UITextField) {
-        let btnPosition = textField.convert(textField.bounds.origin, to: tableView)
-        let indexPath = tableView.indexPathForRow(at: btnPosition)
-        print("IndexPath =", indexPath!.row)
+        let indexPath = getIndexPathOfSelectedTextField(textField: textField)
+    
+        if textField.text == "" {
+            textField.text = "New Reminder"
+        }
+        
+        endEditing()
+        
+        let infoVC = InfoViewController()
+        infoVC.infoDelegate = self
+        infoVC.itemTitle = itemArray[indexPath.row].title
+        infoVC.itemIndexPath = indexPath
+        let navController = UINavigationController(rootViewController: infoVC)
+        navigationController?.present(navController, animated: true, completion: nil)
     }
+    
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return UITableView.automaticDimension
+    }
+    
+    func didEndEditingInfo(titleText: String, indexPath: IndexPath) {
+        itemArray[indexPath.row].title = titleText
+        tableView.reloadRows(at: [indexPath], with: .automatic)
     }
 }

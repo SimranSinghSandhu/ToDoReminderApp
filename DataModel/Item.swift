@@ -9,8 +9,9 @@
 import UIKit
 
 class Item: NSObject {
-    
     var title: String?
     var done: Bool = false
     var originalIndex: IndexPath?
+    
+    var descriptionText: String?
 }
