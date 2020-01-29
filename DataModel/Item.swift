@@ -13,5 +13,6 @@ class Item: NSObject {
     var done: Bool = false
     var originalIndex: IndexPath?
     
-    var descriptionText: String?
+    var notes: String?
+    var remindTimeEnabled: Bool?
 }

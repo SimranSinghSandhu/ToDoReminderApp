@@ -9,7 +9,7 @@
 import UIKit
 
 protocol canChangeInfoDelegate {
-    func didEndEditingInfo(titleText: String, indexPath: IndexPath)
+    func didEndEditingInfo(titleText: String, titleDescription: String, indexPath: IndexPath, remindAlarm: Bool)
 }
 
 class InfoViewController: UIViewController {
@@ -20,7 +20,8 @@ class InfoViewController: UIViewController {
     
     var itemTitle: String?
     var itemIndexPath: IndexPath?
-    var descriptionTextView: String?
+    var itemDescription: String?
+    var itemRemindMeAlarm: Bool?
     
     let tableView: UITableView = {
         let tableView = UITableView()
@@ -50,7 +51,7 @@ class InfoViewController: UIViewController {
     
     @objc func doneButtonHandle() {
         tableView.endEditing(true)
-        infoDelegate?.didEndEditingInfo(titleText: itemTitle!, indexPath: itemIndexPath!)
+        infoDelegate?.didEndEditingInfo(titleText: itemTitle!, titleDescription: itemDescription!, indexPath: itemIndexPath!, remindAlarm: itemRemindMeAlarm!)
         navigationController?.dismiss(animated: true, completion: nil)
     }
     
@@ -71,31 +72,54 @@ extension InfoViewController: UITableViewDelegate, UITableViewDataSource {
         tableView.delegate = self
         tableView.dataSource = self
         
-        tableView.register(DetailCustomCell.self, forCellReuseIdentifier: cellId)
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: cellId, for: indexPath) as! DetailCustomCell
         if indexPath.row == 0 {
+            let cell = DetailCustomCell()
+            cell.backgroundColor = UIColor.white
             cell.itemTitle.text = itemTitle
             cell.itemTitle.delegate = self
+            return cell
         } else if indexPath.row == 1 {
-            
+            let cell = DescriptionCell()
+            cell.backgroundColor = UIColor.white
+            cell.itemDescription.text = itemDescription
+            cell.itemDescription.delegate = self
+            return cell
+        } else {
+            let cell = SwitchAlarmCell()
+            cell.switchDelegate = self
+            cell.backgroundColor = UIColor.white
+            cell.textLabel?.textColor = UIColor.black
+            cell.switchBtn.isOn = itemRemindMeAlarm!
+            cell.textLabel?.text = "Remind me"
+            return cell
         }
-        return cell
     }
     
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 1
+        return 3
     }
     
 }
 
 extension InfoViewController: UITextFieldDelegate {
-    
     func textFieldDidEndEditing(_ textField: UITextField) {
         itemTitle = textField.text
     }
-    
 }
+
+extension InfoViewController: UITextViewDelegate {
+    func textViewDidEndEditing(_ textView: UITextView) {
+        itemDescription = textView.text
+    }
+}
+
+extension InfoViewController: switchBtnDelegate {
+    func didSwitchValueChanged(isOn: Bool) {
+        itemRemindMeAlarm = isOn
+    }
+}
+

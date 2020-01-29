@@ -87,6 +87,8 @@ extension ViewController {
         currentIndexPath = newIndexPath         // Current IndexPath to make it Become First Responder in willDisplayTableView Method
         let newItem = Item()
         newItem.title = ""
+        newItem.notes = ""
+        newItem.remindTimeEnabled = false
         itemArray.insert(newItem, at: newIndexPath.row)                     // Insert Item in Array
         tableView.beginUpdates()
         tableView.insertRows(at: [newIndexPath], with: .automatic)          // Insert Item in TableView
@@ -379,6 +381,13 @@ extension ViewController {
 
 extension ViewController: infoButtonDelegate, canChangeInfoDelegate {
     
+    func didEndEditingInfo(titleText: String, titleDescription: String, indexPath: IndexPath, remindAlarm: Bool) {
+        itemArray[indexPath.row].title = titleText
+        itemArray[indexPath.row].notes = titleDescription
+        itemArray[indexPath.row].remindTimeEnabled = remindAlarm
+        tableView.reloadRows(at: [indexPath], with: .automatic)
+    }
+    
     func didPressInfoButton(textField: UITextField) {
         let indexPath = getIndexPathOfSelectedTextField(textField: textField)
     
@@ -390,8 +399,12 @@ extension ViewController: infoButtonDelegate, canChangeInfoDelegate {
         
         let infoVC = InfoViewController()
         infoVC.infoDelegate = self
-        infoVC.itemTitle = itemArray[indexPath.row].title
         infoVC.itemIndexPath = indexPath
+        
+        infoVC.itemTitle = itemArray[indexPath.row].title
+        infoVC.itemDescription = itemArray[indexPath.row].notes
+        infoVC.itemRemindMeAlarm = itemArray[indexPath.row].remindTimeEnabled
+        
         let navController = UINavigationController(rootViewController: infoVC)
         navigationController?.present(navController, animated: true, completion: nil)
     }
@@ -399,10 +412,5 @@ extension ViewController: infoButtonDelegate, canChangeInfoDelegate {
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return UITableView.automaticDimension
-    }
-    
-    func didEndEditingInfo(titleText: String, indexPath: IndexPath) {
-        itemArray[indexPath.row].title = titleText
-        tableView.reloadRows(at: [indexPath], with: .automatic)
     }
 }
